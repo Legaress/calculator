@@ -10,43 +10,44 @@
 
 <body>
     <div class="container">
-        <div class="calculator">
-
-            <div class="display"></div>
-            <div class="keyboard">
+        <div class="calculator" role="application" aria-label="Calculator">
+            <div class="display" role="textbox" aria-live="polite" aria-atomic="true">1.23456789</div>
+            
+            <div class="keyboard" role="group" aria-label="Calculator keypad">
                 <div class="row">
-                    <button id="clear" class="button special">AC</button>
-                    <button id="sign" class="button special">+/-</button>
-                    <button id="percent" class="button special">%</button>
-                    <button id="divide" class="button operation">÷</button>
+                    <button id="clear" class="button function-key" aria-label="Clear all">AC</button>
+                    <button id="sign" class="button function-key" aria-label="Change sign">+/-</button>
+                    <button id="percent" class="button function-key" aria-label="Percentage">%</button>
+                    <button id="divide" class="button operator" aria-label="Divide">÷</button>
                 </div>
                 <div class="row">
-                    <button id="seven" class="button number">7</button>
-                    <button id="height" class="button number">8</button>
-                    <button id="nine" class="button number">9</button>
-                    <button id="multiply" class="button operation">÷</button>
+                    <button id="seven" class="button digit">7</button>
+                    <button id="eight" class="button digit">8</button>
+                    <button id="nine" class="button digit">9</button>
+                    <button id="multiply" class="button operator" aria-label="Multiply">×</button>
                 </div>
                 <div class="row">
-                    <button id="four" class="button number">4</button>
-                    <button id="five" class="button number">5</button>
-                    <button id="six" class="button number">6</button>
-                    <button id="subtract" class="button operation">×</button>
+                    <button id="four" class="button digit">4</button>
+                    <button id="five" class="button digit">5</button>
+                    <button id="six" class="button digit">6</button>
+                    <button id="subtract" class="button operator" aria-label="Subtract">-</button>
                 </div>
                 <div class="row">
-                    <button id="one" class="button number">1</button>
-                    <button id="two" class="button number">2</button>
-                    <button id="three" class="button number">3</button>
-                    <button id="add" class="button operation">-</button>
+                    <button id="one" class="button digit">1</button>
+                    <button id="two" class="button digit">2</button>
+                    <button id="three" class="button digit">3</button>
+                    <button id="add" class="button operator" aria-label="Add">+</button>
                 </div>
                 <div class="row">
-                    <button id="zero" class="button number">0</button>
-                    <button id="dot" class="button number">.</button>
-                    <button id="equal" class="button result">=</button>
+                    <button id="zero" class="button digit">0</button>
+                    
+                    <div class="span-two">
+                        <button id="dot" class="button digit" aria-label="Decimal point">.</button>
+                        <button id="equal" class="button equals" aria-label="Equals">=</button>
+                    </div>
                 </div>
             </div>
-
         </div>
-    </div>
     </div>
     <script src="script.js"></script>
 </body>

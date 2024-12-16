@@ -41,7 +41,7 @@
     justify-content: stretch;
     align-items: stretch;
     padding: 1rem;
-    min-width: 400px;
+    min-width: 375px;
     min-height: 600px;
     border-radius: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);

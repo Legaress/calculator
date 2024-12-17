@@ -1,13 +1,13 @@
 // Configuration constants for the calculator
 const CONFIG = {
-    MAX_DIGITS: 9, // Maximum number of digits allowed in the display
-    DEFAULT_VALUE: '0', // Default value displayed at initialization
-    DECIMAL_SEPARATOR: '.', // Character used for decimal separation
-    PRECISION: 9, // Decimal precision for calculations
-    MAX_NUMBER: 999999999, // Maximum number that can be displayed
+    MAX_DIGITS: 9, // Max digits in display
+    DEFAULT_VALUE: '0', // Default display value
+    DECIMAL_SEPARATOR: '.', // Decimal separator
+    PRECISION: 9, // Decimal precision
+    MAX_NUMBER: 999999999, // Max displayable number
 };
 
-// Mapping of number names to their numeric values
+// Mapping of number names to values
 const NUMBERS = {
     zero: 0,
     one: 1,
@@ -19,7 +19,7 @@ const NUMBERS = {
     seven: 7,
     eight: 8,
     nine: 9,
-    dot: CONFIG.DECIMAL_SEPARATOR // Use the configured decimal separator
+    dot: CONFIG.DECIMAL_SEPARATOR // Decimal separator
 };
 
 // Supported arithmetic operations
@@ -30,65 +30,120 @@ const OPERATORS = {
     DIVIDE: 'divide'
 };
 
+// Command interface
+class Command {
+    execute(a, b) {}
+}
+
+// Concrete command classes for each operation
+class AddCommand extends Command {
+    execute(a, b) {
+        return a + b;
+    }
+}
+
+class SubtractCommand extends Command {
+    execute(a, b) {
+        return a - b;
+    }
+}
+
+class MultiplyCommand extends Command {
+    execute(a, b) {
+        return a * b;
+    }
+}
+
+class DivideCommand extends Command {
+    execute(a, b) {
+        return a / b;
+    }
+}
+
 // Calculator class definition
 class Calculator {
     constructor(display, keyboard) {
-        this.display = display; // Reference to the display element
-        this.keyboard = keyboard; // Reference to the keyboard element
-        this.store = this.initializeStore(); // Initialize state storage
-        this.initialize(); // Set up event listeners and initial display
-    }
-
-    // Initialize the state storage for calculator operations
-    initializeStore() {
-        return {
-            digitCount: 0, // Count of digits currently displayed
-            isTypingNewNumber: true, // Flag to indicate if a new number is being typed
-            hasDecimal: false, // Flag to track if a decimal point has been used
-            previousValue: null, // Store the previous value for operations
-            currentValue: null, // Store the current value being processed
-            currentOperation: null // Store the current operation selected
+        this.display = display; // Display element
+        this.keyboard = keyboard; // Keyboard element
+        this.store = this.initializeStore(); // State storage
+        this.initialize(); // Set up event listeners
+        this.operations = {
+            [OPERATORS.ADD]: new AddCommand(),
+            [OPERATORS.SUBTRACT]: new SubtractCommand(),
+            [OPERATORS.MULTIPLY]: new MultiplyCommand(),
+            [OPERATORS.DIVIDE]: new DivideCommand(),
         };
     }
 
-    // Set up initial display and event listeners for keyboard input
+    // Initialize state storage
+    initializeStore() {
+        return {
+            digitCount: 0, // Count of displayed digits
+            isTypingNewNumber: true, // New number flag
+            hasDecimal: false, // Decimal point flag
+            previousValue: null, // Previous value
+            currentValue: null, // Current value
+            currentOperation: null // Current operation
+        };
+    }
+
+    // Set up initial display and event listeners
     initialize() {
-        this.resetDisplay(); // Reset the display to default value
-        this.keyboard.addEventListener('click', (e) => this.handleKeyboardClick(e)); // Event listener for keyboard clicks
+        this.resetDisplay(); // Reset display
+        this.keyboard.addEventListener('click', (e) => this.handleKeyboardClick(e)); // Keyboard click listener
     }
 
-    // Reset display and state storage to initial conditions
+    // Reset display and state storage
     resetDisplay() {
-        this.display.textContent = CONFIG.DEFAULT_VALUE; // Set display to default value
-        this.store = this.initializeStore(); // Reinitialize state storage
+        this.display.textContent = CONFIG.DEFAULT_VALUE; // Default value
+        this.store = this.initializeStore(); // Reinitialize state
     }
 
-    // Handle keyboard click events based on target element clicked
+    // Handle keyboard click events
     handleKeyboardClick(event) {
-        const target = event.target; // Get the clicked target
+        const target = event.target; // Clicked target
 
         if (target.classList.contains('digit')) { 
-            this.processDigitInput(target.id); // Process digit input if it's a digit button
+            this.handleDigitInput(target.id); // Handle digit input
         } else if (target.id === 'clear') { 
-            this.resetDisplay(); // Reset display if clear button is clicked
+            this.resetDisplay(); // Clear display
         } else if (target.classList.contains('operator')) { 
-            this.processOperatorInput(target.id); // Process operator input if it's an operator button
+            this.handleOperatorInput(target.id); // Handle operator input
         } else if (target.classList.contains('equals')) { 
-            this.processEqualsInput(); // Process equals input if equals button is clicked
+            this.handleEqualsInput(); // Handle equals input
         } else if (target.id === 'sign') {
-            this.processChangeSignInput();
+            this.toggleSign(); // Toggle sign
         } else if (target.id === 'percent') {
-            
+            this.convertToPercentage(); // Convert to percentage
         }
     }
 
-    processChangeSignInput(){
-        const result = parseFloat(this.display.textContent) * (-1);
-        this.display.textContent = result.toString();
+    convertToPercentage() {
+        const currentValue = this.getCurrentDisplayValue();
+        if (!isNaN(currentValue)) {
+            const result = currentValue / 100; // Percentage conversion
+            this.updateDisplay(result);
+        }
     }
-    // Handle input of digits (0-9 or decimal point)
-    processDigitInput(digit) {
-        if (this.store.digitCount >= CONFIG.MAX_DIGITS) return; // Prevent adding more digits than allowed
+
+    toggleSign() {
+        const currentValue = this.getCurrentDisplayValue();
+        const result = currentValue * (-1);
+        this.updateDisplayAndCheckBounds(result);
+    }
+
+    getCurrentDisplayValue() {
+        return parseFloat(this.display.textContent);
+    }
+
+    // Update display and check bounds
+    updateDisplay(value) {
+        this.display.textContent = parseFloat(value.toPrecision(9)).toString();
+    }
+
+    // Handle digit input
+    handleDigitInput(digit) {
+        if (this.store.digitCount >= CONFIG.MAX_DIGITS) return; // Max digits check
 
         if (!NUMBERS.hasOwnProperty(digit)) { 
             console.error(`Invalid digit input: ${digit}`); 
@@ -99,106 +154,87 @@ class Calculator {
         const numberToAdd = NUMBERS[digit]; 
 
         if (isDot) { 
-            if (this.store.hasDecimal) return; // Ignore additional decimal points if one already exists
+            if (this.store.hasDecimal) return; // Ignore additional decimals
             this.display.textContent += CONFIG.DECIMAL_SEPARATOR; 
             this.store.hasDecimal = true; 
         } else { 
-            if (this.store.isTypingNewNumber) { 
-                this.display.textContent = numberToAdd.toString(); 
-                this.store.digitCount = 1; // Reset digit count for new number input
-            } else { 
-                this.display.textContent += numberToAdd.toString(); 
-                this.store.digitCount++; 
-            }
+            this.display.textContent = this.store.isTypingNewNumber 
+                ? numberToAdd.toString() 
+                : this.display.textContent + numberToAdd.toString();
+            this.store.digitCount = this.store.isTypingNewNumber ? 1 : this.store.digitCount + 1; // Update count
         }
 
-        this.store.isTypingNewNumber = false; // Set flag indicating that a new number is not being typed anymore
+        this.store.isTypingNewNumber = false; // New number flag
     }
 
-    // Handle operator input (addition, subtraction, etc.)
-    processOperatorInput(operator) {
+    // Handle operator input
+    handleOperatorInput(operator) {
+        this.store.currentValue = this.getCurrentDisplayValue(); // Update current value
         if (this.store.currentOperation && !this.store.isTypingNewNumber) { 
-            this.store.currentValue = parseFloat(this.display.textContent); 
-            this.executeOperation(); // Execute operation if one is already set and a new number isn't being typed
-        } else { 
-            if (this.store.previousValue === null) { 
-                this.store.previousValue = parseFloat(this.display.textContent); // Set previous value on first operator input
-            }
-        }
-        
-        this.store.currentOperation = operator; // Set current operation based on user input
-        this.store.isTypingNewNumber = true; // Indicate that a new number is being typed next
+            this.executeOperation(); // Execute existing operation
+        } 
+        this.store.previousValue = this.store.previousValue ?? this.store.currentValue; // Set previous value
+        this.store.currentOperation = operator; // Set current operation
+        this.store.isTypingNewNumber = true; // New number flag
         this.store.digitCount = 0; 
-        this.store.hasDecimal = false; // Reset decimal state for new input
+        this.store.hasDecimal = false; // Reset decimal state
     }
 
-    // Handle equals button input to perform calculation and show result
-    processEqualsInput() {
+    // Handle equals button input
+    handleEqualsInput() {
         if (this.store.currentOperation && !this.store.isTypingNewNumber) { 
-            this.store.currentValue = parseFloat(this.display.textContent); 
+            this.store.currentValue = this.getCurrentDisplayValue(); 
             this.executeOperation(); 
         }
         
-        this.resetAfterCalculation(); // Reset state after calculation is done
+        this.resetAfterCalculation(); // Reset state
     }
 
-    // Execute the current operation based on stored values and update display with result
+    // Execute the current operation
     executeOperation() {
-        const result = this.calculate(); 
-
-        if (result >= CONFIG.MAX_NUMBER) { 
-            console.warn('Result exceeds maximum number limit'); 
-            this.resetDisplay(); 
-            this.display.textContent = 'NaN'; 
-            return;
-        }
-
-        this.display.textContent = result.toString(); 
-        
-        this.resetAfterCalculation(true); // Prepare for the next operation while keeping previous value intact
-    }
-
-    // Perform calculation based on stored values and operation type
-    calculate() {
-        const operations = {
-            [OPERATORS.ADD]: (a, b) => a + b,
-            [OPERATORS.SUBTRACT]: (a, b) => a - b,
-            [OPERATORS.MULTIPLY]: (a, b) => a * b,
-            [OPERATORS.DIVIDE]: (a, b) => a / b,
-        };
-
         const { currentOperation, previousValue, currentValue } = this.store;
+        const operation = this.operations[currentOperation];
 
-        const result = operations[currentOperation]?.(previousValue, currentValue);
-        
-        console.log(`Calculating ${previousValue} ${currentOperation} ${currentValue} = ${result}`);
-        
-        return parseFloat(result?.toPrecision(CONFIG.PRECISION) ?? 0); // Return result with defined precision or zero by default.
+        if (operation) {
+            const result = operation.execute(previousValue, currentValue);
+            this.updateDisplayAndCheckBounds(result); // Update display
+            this.resetAfterCalculation(true);
+        }
     }
 
-    // Reset states after calculation is complete to prepare for next input.
+    // Update display and check bounds
+    updateDisplayAndCheckBounds(value) {
+        if ( value > CONFIG.MAX_NUMBER || value < -1 * CONFIG.MAX_NUMBER) {
+            console.warn('Result exceeds maximum limit');
+            this.display.textContent = parseFloat(value.toString()).toPrecision(4).toString();
+        } else {
+            this.display.textContent = parseFloat(value.toPrecision(9)).toString();
+        }
+    }
+
+    // Reset states after calculation
     resetAfterCalculation(keepPreviousValue = false) {
         if (!keepPreviousValue) { 
             this.store.previousValue = null; 
         }
         
-        this.store.currentOperation = null; // Clear current operation after calculation is done.
-        this.store.currentValue = null; // Reset current value for next calculation.
+        this.store.currentOperation = null; // Clear operation
+        this.store.currentValue = null; // Reset current value
         this.store.isTypingNewNumber = true; 
         this.store.digitCount = 0; 
-        this.store.hasDecimal = false; // Reset decimal state for new input.
+        this.store.hasDecimal = false; // Reset decimal state
     }
 }
 
-// Initialize calculator once DOM content is fully loaded.
+// Initialize calculator on DOM content load
 document.addEventListener('DOMContentLoaded', () => {
-    const display = document.querySelector('.display'); // Select display element from DOM.
-    const keyboard = document.querySelector('.keyboard'); // Select keyboard element from DOM.
+    const display = document.querySelector('.display'); // Display element
+    const keyboard = document.querySelector('.keyboard'); // Keyboard element
 
     if (!display || !keyboard) { 
         console.error('Required DOM elements not found'); 
         return;
     }
 
-    new Calculator(display, keyboard); // Create a new instance of Calculator with selected display and keyboard elements.
+    new Calculator(display, keyboard); // Create Calculator instance
 });

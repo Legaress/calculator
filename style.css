@@ -54,7 +54,7 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 1rem;
+    padding: 0.5rem;
     background-color: var(--display-color);
     font-size: 3rem;
     border-radius: 0.5rem;
@@ -107,7 +107,7 @@
     flex: 1;
     border-radius: 50%;
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     cursor: pointer;
     border: none;
     color: #333333;
